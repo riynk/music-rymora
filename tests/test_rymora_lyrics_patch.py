@@ -112,6 +112,8 @@ artworkFile = artworkTemp,
         self.assertIn("viewModel.toggleCurrentSongLike()", player_text)
         self.assertIn("verticalScroll(rememberScrollState())", player_text)
         self.assertIn("!it.filePath.isNullOrBlank()", player_text)
+        self.assertIn("playbackFailures.collect", player_text)
+        self.assertIn("SnackbarHost(snackbarHostState)", player_text)
 
     def test_fails_closed_when_upstream_anchor_changes(self):
         (self.data / "LyricsRepository.kt").write_text("upstream changed unexpectedly", encoding="utf-8")
