@@ -37,8 +37,21 @@ def main() -> int:
 internal data class ParsedLyrics(
     val lines: List<LrcLine>,
     val syncType: LyricsSyncType,
-    val sourceFormat: LyricsSourceFormat = LyricsSourceFormat.OTHER
+    val sourceFormat: LyricsSourceFormat = LyricsSourceFormat.OTHER,
+    val rawTtml: String? = null
 )"""
+    )
+
+    replace_once(
+        model,
+        """        val provider: String,
+        val syncType: LyricsSyncType
+    ) : LyricsResult.Success""",
+        """        val provider: String,
+        val syncType: LyricsSyncType,
+        val sourceFormat: LyricsSourceFormat = LyricsSourceFormat.OTHER,
+        val rawTtml: String? = null
+    ) : LyricsResult.Success"""
     )
 
     parser = base / "LyricsParser.kt"
@@ -47,7 +60,7 @@ internal data class ParsedLyrics(
         """return when {
             isTtml(normalized) -> parseTtml(normalized)""",
         """return when {
-            isTtml(normalized) -> parseTtml(normalized)?.copy(sourceFormat = LyricsSourceFormat.TTML)"""
+            isTtml(normalized) -> parseTtml(normalized)?.copy(sourceFormat = LyricsSourceFormat.TTML, rawTtml = normalized)"""
     )
 
     local = base / "LocalLyricsSource.kt"
@@ -57,7 +70,48 @@ internal data class ParsedLyrics(
         'val SIDECAR_EXTENSIONS = listOf("ttml", "lrc")'
     )
 
+    replace_once(
+        local,
+        """private fun ParsedLyrics.toResult(provider: String) = LyricsResult.Success(
+        lines = lines,
+        provider = provider,
+        syncType = syncType
+    )""",
+        """private fun ParsedLyrics.toResult(provider: String) = LyricsResult.Success(
+        lines = lines,
+        provider = provider,
+        syncType = syncType,
+        sourceFormat = sourceFormat,
+        rawTtml = rawTtml
+    )"""
+    )
+
     repo = base / "LyricsRepository.kt"
+    replace_once(
+        repo,
+        """private data class ProviderCandidate(
+    val provider: RemoteLyricsProvider,
+    val parsed: ParsedLyrics
+) {
+    fun toSuccess() = LyricsResult.Success(
+        lines = parsed.lines,
+        provider = provider.name,
+        syncType = parsed.syncType
+    )
+}""",
+        """private data class ProviderCandidate(
+    val provider: RemoteLyricsProvider,
+    val parsed: ParsedLyrics
+) {
+    fun toSuccess() = LyricsResult.Success(
+        lines = parsed.lines,
+        provider = provider.name,
+        syncType = parsed.syncType,
+        sourceFormat = parsed.sourceFormat,
+        rawTtml = parsed.rawTtml
+    )
+}"""
+    )
     replace_once(
         repo,
         """val best = if (configuration.preferSynced) {
@@ -85,7 +139,73 @@ internal data class ParsedLyrics(
                         ?: ordered.firstOrNull()
                 }"""
     )
+    metadata = base / "DownloadedAudioMetadata.kt"
+    download = base / "DownloadRepository.kt"
+    replace_once(
+        metadata,
+        """private fun Long.toLrcTimestamp(): String {""",
+        """internal data class DownloadLyricsPayload(
+    val extension: String,
+    val mimeType: String,
+    val content: String
+)
+
+internal fun LyricsResult.Success.toDownloadLyricsPayload(): DownloadLyricsPayload =
+    if (sourceFormat == LyricsSourceFormat.TTML && !rawTtml.isNullOrBlank()) {
+        DownloadLyricsPayload("ttml", "application/ttml+xml", rawTtml)
+    } else {
+        DownloadLyricsPayload("lrc", "text/plain", toDownloadLyrics())
+    }
+
+private fun Long.toLrcTimestamp(): String {"""
+    )
+    replace_once(
+        download,
+        """?.toDownloadLyrics()
+                            ?.takeIf(String::isNotBlank)""",
+        """?.toDownloadLyricsPayload()
+                            ?.takeIf { it.content.isNotBlank() }"""
+    )
+    replace_once(
+        download,
+        """val name = storage.buildMusicCompanionFileName(
+                            request.title,
+                            request.subtitle,
+                            "lrc"
+                        )
+                        storage.createPendingMusicCompanion(
+                            name,
+                            "text/plain",
+                            privateStorage
+                        )?.also { target ->
+                            pendingTargets += target
+                            storage.openOutput(target)?.bufferedWriter(Charsets.UTF_8)?.use {
+                                it.write(body)
+                            } ?: throw java.io.IOException("Could not write lyric storage entry")""",
+        """val name = storage.buildMusicCompanionFileName(
+                            request.title,
+                            request.subtitle,
+                            body.extension
+                        )
+                        storage.createPendingMusicCompanion(
+                            name,
+                            body.mimeType,
+                            privateStorage
+                        )?.also { target ->
+                            pendingTargets += target
+                            storage.openOutput(target)?.bufferedWriter(Charsets.UTF_8)?.use {
+                                it.write(body.content)
+                            } ?: throw java.io.IOException("Could not write lyric storage entry")"""
+    )
+    replace_once(
+        download,
+        """artworkFile = artworkTemp,
+                        lyrics = lyrics""",
+        """artworkFile = artworkTemp,
+                        lyrics = lyrics?.content"""
+    )
     print("Rymora TTML-first lyrics behavior applied.")
+    print("TTML raw payload is retained and exported as a .ttml sidecar; LRC/plain fallback remains.")
     print("Priority: TTML source first, sync quality as tie-breaker; local TTML sidecar before LRC.")
     return 0
 
