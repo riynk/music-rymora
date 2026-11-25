@@ -86,7 +86,7 @@ artworkFile = artworkTemp,
         local = (self.data / "LocalLyricsSource.kt").read_text()
         repo = (self.data / "LyricsRepository.kt").read_text()
         self.assertIn("enum class LyricsSourceFormat { TTML, OTHER }", model)
-        self.assertIn("rawTtml = normalized", parser)
+        self.assertIn("rawTtml = content", parser)
         self.assertIn("rawTtml: String? = null", model)
         self.assertIn('listOf("ttml", "lrc")', local)
         self.assertIn("sourceFormat == LyricsSourceFormat.TTML", repo)
