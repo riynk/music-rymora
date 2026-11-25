@@ -23,13 +23,21 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          # The legacy "tools" SDK package was removed by Google.
+          # Install only platform-tools; Gradle resolves compile/build tools.
+          packages: 'platform-tools'
       - name: Apply Rymora branding overlay
         run: bash scripts/bootstrap-android.sh
+      - name: Run unit tests
+        working-directory: android/vendor/koda
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
       - name: Build debug APK
         working-directory: android/vendor/koda
-        run: ./gradlew :app:assembleDebug --stacktrace
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
