@@ -27,9 +27,9 @@
 - Keep Lyrics as an explicit tab/button; changing tracks must not switch the panel to Lyrics.
 - Ensure relaunch and process restoration do not unexpectedly open the lyric panel.
 - Prefer TTML source format before sync quality; use sync quality as the tie-breaker. (Rymora overlay implemented; CI validation pending.)
-- Preserve original raw TTML payload and store a TTML sidecar for offline use (not yet implemented).
+- Preserve original raw TTML payload and store a `.ttml` sidecar for offline use (overlay implemented; CI validation pending).
 - Use Enhanced LRC/LRC and plain text as fallbacks.
-- Save local TTML sidecars when the selected source is TTML; keep LRC sidecars when LRC was the source (not yet implemented).
+- Save local TTML sidecars when the selected source is TTML; keep LRC sidecars when LRC was the source (overlay implemented; CI validation pending).
 - Do not replace a valid local lyric with a lower-quality remote result without user choice.
 
 ## Phase C — yt-dlp download adapter
