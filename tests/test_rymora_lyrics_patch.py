@@ -106,6 +106,12 @@ artworkFile = artworkTemp,
         self.assertTrue(artwork.is_file())
         self.assertIn("readEmbeddedCover", artwork.read_text())
         self.assertIn("MediaMetadataRetriever", artwork.read_text())
+        player = self.root / "app/src/main/java/com/ivor/ivormusic/ui/player/PlayerScreen.kt"
+        self.assertTrue(player.is_file())
+        player_text = player.read_text()
+        self.assertIn("viewModel.toggleCurrentSongLike()", player_text)
+        self.assertIn("verticalScroll(rememberScrollState())", player_text)
+        self.assertIn("!it.filePath.isNullOrBlank()", player_text)
 
     def test_fails_closed_when_upstream_anchor_changes(self):
         (self.data / "LyricsRepository.kt").write_text("upstream changed unexpectedly", encoding="utf-8")
