@@ -5,14 +5,11 @@ import sys
 
 def replace_once(path: Path, old: str, new: str) -> None:
     text = path.read_text(encoding='utf-8')
-    old_count = text.count(old)
-    new_count = text.count(new)
-    if new_count == 1:
+    if new in text:
         return  # already applied
-    if old_count == 1:
-        path.write_text(text.replace(old, new, 1), encoding='utf-8')
-        return
-    raise RuntimeError(f'{path}: expected one old or one patched occurrence; old={old_count}, new={new_count}')
+    if text.count(old) != 1:
+        raise RuntimeError(f'{path}: expected one source occurrence, found {text.count(old)}')
+    path.write_text(text.replace(old, new, 1), encoding='utf-8')
 
 def main() -> int:
     if len(sys.argv) != 2:
@@ -26,8 +23,8 @@ def main() -> int:
     replace_once(gradle, 'applicationId = "com.ivor.ivormusic"', 'applicationId = "com.riynk.rymora"')
     replace_once(gradle, 'versionName = "5.4"', 'versionName = "0.1.0-alpha01"')
     replace_once(gradle, 'manifestPlaceholders["appLabel"] = "Koda Debug"', 'manifestPlaceholders["appLabel"] = "Rymora Debug"')
-    replace_once(gradle, '"ivorisnoob/Koda"', '"riynk/music-rymora"')
-    replace_once(gradle, '"ivorisnoob"', '"riynk"')
+    replace_once(gradle, r'''buildConfigField("String", "GITHUB_REPO", "\"ivorisnoob/Koda\"")''', r'''buildConfigField("String", "GITHUB_REPO", "\"riynk/music-rymora\"")''')
+    replace_once(gradle, r'''buildConfigField("String", "GITHUB_USERNAME", "\"ivorisnoob\"")''', r'''buildConfigField("String", "GITHUB_USERNAME", "\"riynk\"")''')
 
     strings = root / 'app/src/main/res/values/strings.xml'
     replace_once(strings, '<string name="app_name">Koda</string>', '<string name="app_name">Rymora</string>')
@@ -46,7 +43,13 @@ def main() -> int:
     replace_once(theme_file, 'colorPalette: String = DYNAMIC_PALETTE_ID', 'colorPalette: String = "rymora"')
 
     palette_file = root / 'app/src/main/java/com/ivor/ivormusic/ui/theme/ColorPalettes.kt'
-    replace_once(palette_file, '    // Vibrant\n', '    // Rymora brand\n    AppPalette("rymora", "Rymora", "Brand", Color(0xFFFF5D72), Color(0xFFFF9BA8), Color(0xFFB6F0D2)),\n\n    // Vibrant\n')
+    palette_text = palette_file.read_text(encoding='utf-8')
+    brand_palette = 'AppPalette("rymora", "Rymora", "Brand", Color(0xFFFF5D72), Color(0xFFFF9BA8), Color(0xFFB6F0D2))'
+    if brand_palette not in palette_text:
+        marker = '    // Vibrant\n'
+        if palette_text.count(marker) != 1:
+            raise RuntimeError(f'{palette_file}: could not locate the single Vibrant palette section')
+        palette_file.write_text(palette_text.replace(marker, '    // Rymora brand\n    ' + brand_palette + ',\n\n' + marker, 1), encoding='utf-8')
 
     prefs_file = root / 'app/src/main/java/com/ivor/ivormusic/data/ThemePreferences.kt'
     replace_once(prefs_file, 'const val DEFAULT_COLOR_PALETTE = "dynamic"', 'const val DEFAULT_COLOR_PALETTE = "rymora"')
