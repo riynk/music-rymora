@@ -4,7 +4,7 @@
 **Audited branch:** `android-foundation`  
 **Audited parent commit:** `d75596637b11d2a665d3e269f80277546fb712a0`  
 **Pinned Android upstream:** [Ivorisnoob/Koda](https://github.com/Ivorisnoob/Koda), commit `5a97eccd7702e5aec6f9a443b31077a94e1bd303` (Koda 5.4 / `beta`)  
-**Status:** Audit complete; product integration and release validation remain open.
+**Status:** CI debug build and upstream unit tests pass; product integration and device validation remain open.
 
 ## 1. Executive verdict
 
@@ -13,10 +13,11 @@ Rymora is **not an Android tutorial project**. The selected upstream, Koda, is a
 However, the current Rymora branch is still an **integration scaffold**, not a completed Rymora fork:
 - The application source is referenced as a Git submodule. The Rymora parent repository contains no standalone Gradle Android project.
 - The branding script changes a limited set of source strings and theme values. It does not rebrand all translations or replace every upstream identity.
-- The upstream build has never been reached by the current Rymora CI run.
-- User-required differentiators — TTML-first selection and preservation, yt-dlp backend, lyrics translation and a general tag editor — are not implemented in this branch.
+- The CI pipeline now builds a debug APK and runs upstream unit tests; an artifact is verified for run [45620251758](https://github.com/riynk/music-rymora/actions/runs/45620251758).
+- A TTML-first preference overlay is implemented and regression-tested. Raw TTML persistence/offline sidecar preservation, yt-dlp backend, lyric translation and general tag-editor UI remain unimplemented.
+- The APK is a CI debug artifact, not yet install-tested on a physical device.
 
-**Conclusion:** Keep Koda as the high-feature upstream candidate. Do not describe the current branch as a working APK or production-ready Rymora. The next engineering step is to make the upstream genuinely maintainable as a Rymora fork, then implement the differentiators with tests.
+**Conclusion:** Koda remains the high-feature upstream foundation. A debug APK now builds successfully, but the branch is not production-ready or device-validated. Continue with maintainable fork ownership and the remaining Rymora-specific differentiators.
 
 ## 2. What was actually inspected
 
@@ -27,7 +28,7 @@ The audit inspected:
 - Lyrics parser, provider registry, lyrics repository, local sidecar lookup, player panel state, player view-model fetch calls, download metadata writer and download repository.
 - The recorded GitHub Actions job steps and complete job log for run [45616467002](https://github.com/riynk/music-rymora/actions/runs/45616467002).
 
-This was a repository/source/CI audit. It was **not** a physical-device test or a successful local Gradle build; no such result is claimed.
+This was a repository/source/CI audit plus a successful hosted Gradle unit-test and debug-APK build. It was **not** a physical-device install/playback test; no such result is claimed.
 
 ## 3. Upstream assessment — what Koda already gives Rymora
 
@@ -56,7 +57,7 @@ This is a credible feature-rich foundation. Rymora should reuse these systems ra
 | Music video browsing/playback | Present | Validate on device, including PiP and audio/video handover |
 | Lyrics not shown automatically | Player panel defaults to Up Next; Lyrics is an explicit panel/tab | Preserve this behavior; lyrics data may still be fetched in background |
 | TTML parsing | Present | Parsing support is not the same as TTML-first preference |
-| TTML-first provider selection | Not present | Add format-aware ranking and tests |
+| TTML-first provider selection | Not present upstream | Rymora overlay adds format-aware ranking; regression-tested in CI |
 | Preserve TTML for offline use | Not present in current download serialization | Preserve source format/raw TTML; do not flatten every result into LRC |
 | LRC / Enhanced LRC fallback | Present | Retain as fallback and regression-test |
 | yt-dlp / Python download backend | Not integrated; Koda uses its NewPipe-based downloader | Add a pluggable adapter; retain queue, progress, persistence and metadata handoff |
@@ -82,7 +83,7 @@ Warning: Failed to find package 'tools'
 
 Google no longer serves the legacy SDK `tools` package. The branding step, Gradle build and artifact upload were skipped. The run produced zero APK artifacts.
 
-**Remediation committed:** commit `86448829776c408fc8872626c80a4a644da918b5` updates setup-android to v4, explicitly installs only `platform-tools`, and adds a JVM unit-test gate before APK assembly. The corrected run [45618903991](https://github.com/riynk/music-rymora/actions/runs/45618903991) has passed SDK setup and the branding overlay; the unit-test step is still running at the time of this audit update. Its Gradle test and APK results are not yet confirmed.
+**Remediation committed:** workflow now uses `android-actions/setup-android@v4` and installs `platform-tools` only; Gradle resolves build tools. It also runs overlay regression tests, upstream JVM unit tests and debug APK assembly. Run [45620251758](https://github.com/riynk/music-rymora/actions/runs/45620251758) completed successfully. Artifact `rymora-android-debug` was uploaded (ZIP 126,461,215 bytes; APKs inside include universal and ABI-specific builds). Artifact verified; physical install remains untested.
 
 **Interpretation:** The original failure did not demonstrate a Kotlin/Gradle compilation defect. It demonstrated a broken SDK setup step. The SDK setup cause is now fixed; the app still needs the test and build stages to finish successfully before an APK can be claimed.
 
@@ -250,4 +251,4 @@ Rymora is not considered a release candidate until:
 
 ---
 
-**Audit disposition:** Keep the Koda upstream as the current foundation candidate. Fix CI first. Then move from a submodule-only wrapper to a Rymora-owned fork before adding product-specific feature code. The current branch is a credible starting point, but it is not yet a validated Rymora application.
+**Audit disposition:** Keep Koda as the foundation. CI is fixed and produces a debug APK. Next, move to a Rymora-owned maintained fork or pin a reproducible overlay strategy, then implement TTML raw-payload preservation, downloader integration, translation and tag editing. Device validation and licensing/security review remain release gates.
