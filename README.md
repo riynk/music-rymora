@@ -28,3 +28,7 @@ Open `android/vendor/koda` in Android Studio. The bootstrap script initializes t
 ## Licensing
 
 The Koda upstream is GPL-3.0. Before distributing a modified combined application, preserve copyright and license notices and comply with applicable source-code and redistribution obligations. Third-party components retain their own licenses. Finalize Rymora's top-level licensing and notices before publishing a distributable build.
+
+## Technical audit
+
+See [the full Rymora technical audit](android/AUDIT.md) for verified upstream capability, integration gaps, CI findings, licensing checks and release acceptance criteria. The Android workflow now installs only the supported SDK packages and runs JVM unit tests before assembling the debug APK; a successful run and physical-device validation are still required before calling this an installable Rymora build.
