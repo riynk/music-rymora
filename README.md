@@ -20,7 +20,7 @@ Open http://localhost:8000.
 - **Design reference:** YouTube Music (inspiration only; no copied brand assets)
 - **Typography:** Google Fonts — DM Sans, Space Grotesk
 - **Placeholder album art:** Unsplash image URLs
-- **Music search & preview source (planned integration):** Apple iTunes Search API, which returns track metadata, artwork and preview URLs. Preview clips only; not full streaming.
+- **Music search & preview source:** Apple iTunes Search API is connected for live search, metadata, artwork and short preview clips; no full-song streaming.
 
 ## Next
 - Wire iTunes search results and preview playback into the UI
