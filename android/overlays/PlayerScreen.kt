@@ -41,10 +41,13 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -82,10 +85,25 @@ fun PlayerScreen(
     val playWhenReady by viewModel.playWhenReady.collectAsState()
     val progress by viewModel.progress.collectAsState()
     val duration by viewModel.duration.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel) {
+        viewModel.playbackFailures.collect { failure ->
+            val message = when (failure.outcome) {
+                PlayerViewModel.PlaybackFailure.Outcome.SKIPPED ->
+                    "Could not play ${failure.title ?: "this track"}. Skipped; check your connection."
+                PlayerViewModel.PlaybackFailure.Outcome.STOPPED ->
+                    "Playback stopped for ${failure.title ?: "this track"}."
+                PlayerViewModel.PlaybackFailure.Outcome.REFUSED ->
+                    "YouTube refused this stream temporarily. Try again later or change network."
+            }
+            snackbarHostState.showSnackbar(message)
+        }
+    }
     
     val isFavorite by viewModel.isCurrentSongLiked.collectAsState()
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { },
