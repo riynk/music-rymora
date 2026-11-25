@@ -12,3 +12,23 @@ audio.addEventListener('timeupdate',()=>{if(audio.duration){document.getElementB
 document.querySelectorAll('.mood-card').forEach(btn=>btn.addEventListener('click',()=>{const mood=btn.dataset.mood;const subset=tracks.filter(t=>t.mood===mood);document.getElementById('recommendTitle').textContent=btn.querySelector('b').textContent+' mix';renderAlbums(subset.length?subset:tracks);renderTracks(subset.length?subset:tracks)}));document.getElementById('refreshBtn').addEventListener('click',()=>{renderAlbums([...tracks].sort(()=>Math.random()-.5));document.getElementById('recommendTitle').textContent='A fresh mix'});document.getElementById('showAllBtn').addEventListener('click',()=>renderTracks(tracks));
 searchInput.addEventListener('input',()=>{state.search=searchInput.value.trim();document.getElementById('clearSearch').style.display=state.search?'block':'none';if(!state.search){document.getElementById('searchResults').classList.add('hidden');return}document.getElementById('searchResults').classList.remove('hidden');const matches=tracks.filter(t=>(t.title+' '+t.artist+' '+t.album).toLowerCase().includes(state.search.toLowerCase()));document.getElementById('resultsList').innerHTML=matches.length?matches.map(t=>{const i=tracks.indexOf(t);return `<div class="track-row" data-play="${i}"><img class="track-thumb" src="${t.art}"><div class="track-main"><strong>${t.title}</strong><span>${t.artist}</span></div><div class="track-album">${t.album}</div><span class="track-duration">${t.duration}</span></div>`}).join(''):'<p style="color:#999;padding:12px">Belum ada hasil. Coba kata lain.</p>';});document.getElementById('clearSearch').addEventListener('click',()=>{searchInput.value='';searchInput.dispatchEvent(new Event('input'));searchInput.focus()});document.getElementById('resultsList').addEventListener('click',e=>{const row=e.target.closest('[data-play]');if(row)play(Number(row.dataset.play))});document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));document.querySelectorAll('.nav-item[data-view]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));btn.classList.add('active');if(btn.dataset.view==='liked'){const liked=tracks.filter((t,i)=>state.liked.has(i));renderTracks(liked)}else renderTracks(tracks);document.getElementById('sidebar').classList.remove('open')}));
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();searchInput.focus()}if(e.code==='Space'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();play()}});renderAlbums();renderTracks();setTrack(0,false);
+// Live catalog search: Apple iTunes Search API (metadata, artwork and short preview clips).
+let catalogTimer;
+searchInput.addEventListener('input',()=>{
+  clearTimeout(catalogTimer);
+  const q=searchInput.value.trim();
+  if(q.length<2)return;
+  catalogTimer=setTimeout(async()=>{
+    const resultsBox=document.getElementById('resultsList');
+    resultsBox.innerHTML='<p style="color:#999;padding:12px">Searching music catalog…</p>';
+    try{
+      const response=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&entity=song&limit=12');
+      if(!response.ok)throw new Error('Catalog request failed');
+      const data=await response.json();
+      const mapped=(data.results||[]).map(item=>({title:item.trackName||'Untitled',artist:item.artistName||'Unknown artist',album:item.collectionName||'Single',art:(item.artworkUrl100||'').replace('100x100bb','600x600bb'),preview:item.previewUrl||'',duration:item.trackTimeMillis?fmt(item.trackTimeMillis/1000):'—',mood:'catalog',externalId:item.trackId,source:'iTunes'}));
+      mapped.forEach(t=>{const existing=tracks.findIndex(x=>x.externalId===t.externalId);if(existing>=0)Object.assign(tracks[existing],t);else tracks.push(t)});
+      const indices=mapped.map(t=>tracks.findIndex(x=>x.externalId===t.externalId));
+      resultsBox.innerHTML=mapped.length?'<div class="catalog-note">Apple catalog · short previews when available</div>'+indices.map(i=>{const t=tracks[i];return `<div class="track-row" data-play="${i}"><img class="track-thumb" src="${t.art}" alt="" loading="lazy"><div class="track-main"><strong>${t.title}</strong><span>${t.artist}</span></div><div class="track-album">${t.album}</div><span class="track-duration">${t.duration}</span></div>`}).join(''):'<p style="color:#999;padding:12px">No results found.</p>';
+    }catch(error){resultsBox.innerHTML='<p style="color:#999;padding:12px">Catalog search unavailable. Local demo tracks remain available.</p>'}
+  },350);
+});
