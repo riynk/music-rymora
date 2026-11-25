@@ -204,6 +204,10 @@ private fun Long.toLrcTimestamp(): String {"""
         """artworkFile = artworkTemp,
                         lyrics = lyrics?.content"""
     )
+    artwork_source = Path(__file__).resolve().parent.parent / "android/overlays/SongArtwork.kt"
+    artwork_target = root / "app/src/main/java/com/ivor/ivormusic/ui/components/SongArtwork.kt"
+    artwork_target.write_text(artwork_source.read_text(encoding="utf-8"), encoding="utf-8")
+
     test_source = Path(__file__).resolve().parent.parent / "android/overlays/RymoraTtmlPayloadTest.kt"
     test_target = root / "app/src/test/java/com/ivor/ivormusic/data/RymoraTtmlPayloadTest.kt"
     test_target.parent.mkdir(parents=True, exist_ok=True)
@@ -211,6 +215,7 @@ private fun Long.toLrcTimestamp(): String {"""
 
     print("Rymora TTML-first lyrics behavior applied.")
     print("TTML raw payload is retained and exported as a .ttml sidecar; LRC/plain fallback remains.")
+    print("Local artwork now falls back to embedded cover extraction.")
     print("Priority: TTML source first, sync quality as tie-breaker; local TTML sidecar before LRC.")
     return 0
 
