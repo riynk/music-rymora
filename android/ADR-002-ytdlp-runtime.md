@@ -1,6 +1,6 @@
 # ADR-002: yt-dlp runtime candidate for Rymora
 
-**Status:** Candidate selected for integration spike; not yet adopted as a dependency.  
+**Status:** Candidate for a build/API spike only; not adopted. YouTube reliability is a release-blocking validation criterion.  
 **Date:** 2026-11-25
 
 ## User requirement
@@ -9,7 +9,7 @@ Rymora must retain its native download queue and UX while using a Python/yt-dlp 
 
 ## Candidates reviewed
 
-### A. `ffmpegkit-maintained/yt-dlp-android` v2.x — preferred spike
+### A. `ffmpegkit-maintained/yt-dlp-android` v2.0.2 — build/API spike candidate
 
 - Embeds CPython 3.13 through Chaquopy and calls yt-dlp in-process.
 - MIT library license; bundled third-party notices are provided by the project.
@@ -60,3 +60,14 @@ Do not make the backend own UI, queue persistence, destination permissions, meta
 8. A mock backend unit test validates the queue adapter without network or native runtime.
 
 **No downloader dependency is committed yet.** This ADR records the selected spike candidate, not a completed feature.
+
+
+## Additional validation gate (2026-11-26)
+
+The currently published v2.0.2 free artifact is available from Maven Central, but its upstream documentation explicitly excludes TLS fingerprint impersonation. Its maintainer describes curl-cffi fingerprint impersonation as a Pro-only feature and notes that standard HTTP may be blocked by some sites, including YouTube. Therefore **this candidate is not approved for production integration until a real YouTube test succeeds on a physical arm64 device**. A build/API spike alone is insufficient.
+
+- Upstream README: https://github.com/ffmpegkit-maintained/yt-dlp-android
+- v2.0.2 release: https://github.com/ffmpegkit-maintained/yt-dlp-android/releases/tag/v2.0.2
+- Maven artifact: https://central.sonatype.com/artifact/dev.ffmpegkit-maintained/yt-dlp-android/2.0.2
+
+The library's advertised free ABI support is arm64-v8a and x86_64 only. Rymora currently produces a 32-bit ABI APK as part of its debug matrix; if adopting the dependency, disable 32-bit packaging intentionally and test the distribution split. Do not add this large runtime before resolving both compatibility and YouTube reliability.
