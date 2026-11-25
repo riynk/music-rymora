@@ -99,6 +99,9 @@ artworkFile = artworkTemp,
         self.assertIn("body.extension", download)
         self.assertIn("body.content", download)
         self.assertIn("lyrics?.content", download)
+        kotlin_test = self.root / "app/src/test/java/com/ivor/ivormusic/data/RymoraTtmlPayloadTest.kt"
+        self.assertTrue(kotlin_test.is_file())
+        self.assertIn("preservesRawTtmlAsOfflineSidecar", kotlin_test.read_text())
 
     def test_fails_closed_when_upstream_anchor_changes(self):
         (self.data / "LyricsRepository.kt").write_text("upstream changed unexpectedly", encoding="utf-8")
