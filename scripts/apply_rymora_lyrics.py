@@ -32,7 +32,7 @@ def main() -> int:
     val lines: List<LrcLine>,
     val syncType: LyricsSyncType
 )""",
-        """internal enum class LyricsSourceFormat { TTML, OTHER }
+        """enum class LyricsSourceFormat { TTML, OTHER }
 
 internal data class ParsedLyrics(
     val lines: List<LrcLine>,
