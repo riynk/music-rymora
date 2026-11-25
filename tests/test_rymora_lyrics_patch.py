@@ -20,7 +20,7 @@ class LyricsOverlayTests(unittest.TestCase):
 data class Success(
         val provider: String,
         val syncType: LyricsSyncType
-    ) : LyricsResult.Success""", encoding="utf-8")
+    ) : LyricsResult()""", encoding="utf-8")
         (data / "LyricsParser.kt").write_text(
             """return when {
             isTtml(normalized) -> parseTtml(normalized)""", encoding="utf-8")
