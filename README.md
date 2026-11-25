@@ -1,47 +1,30 @@
-# Rymora
+# Rymora — Android music experience
 
-**Rymora** is an Android music app concept combining music discovery and playback inspired by YouTube Music with synchronized lyrics and lyric tools inspired by Musixmatch—unified in an original, atmospheric dark UI.
+Rymora is a native Android music app combining YouTube Music-style discovery, streaming and music video playback with Musixmatch-style lyrics, local music management, downloads, metadata editing and online translation.
 
-## Product direction
+## Android foundation
 
-### Music experience
-- Discover music through search, recommendations, moods, artists, albums and playlists
-- Now Playing screen with artwork, queue, playback controls, shuffle, repeat and favorites
-- Background playback, Android notification and lock-screen controls
-- Library: liked songs, playlists, albums and listening history
+The `android-foundation` branch uses **Koda** as its Android application foundation through a pinned Git submodule. This deliberately reuses an existing app instead of recreating the music/video client.
 
-### Lyrics experience
-- Timed/synchronized lyrics while audio plays
-- Full-screen lyrics view and compact lyrics panel
-- Lyrics search and song/artist matching
-- Translation and lyric display customization (where supported)
-- Optional floating lyrics overlay, subject to Android permissions and platform limitations
+- Android foundation: [Koda](https://github.com/Ivorisnoob/Koda), pinned at commit `5a97eccd7702e5aec6f9a443b31077a94e1bd303` on its `beta` branch.
+- Downloader direction: integrate a yt-dlp/Python-capable Android backend using existing work such as [YTDLnis](https://github.com/deniscerri/ytdlnis) and [youtubedl-android](https://github.com/yausername/youtubedl-android), after runtime and license review.
+- Metadata/tag editing: reuse the jaudiotagger dependency already present in Koda; add Rymora's editing UI and safe MediaStore/SAF write-back.
+- Lyrics: retain Koda's multi-provider pipeline and TTML/LRC parser. Lyrics remain closed by default and open only after the user taps Lyrics.
 
-## Android technology plan
-- **Kotlin + Jetpack Compose** — native UI and animations
-- **AndroidX Media3 (ExoPlayer)** — audio playback, media session and background playback
-- **Room** — local library, favorites, playlists and cached metadata
-- **DataStore** — preferences
-- Backend/API integration for catalog and lyrics, using licensed/authorized providers
+See `android/README.md`, `android/UPSTREAMS.md`, and `android/IMPLEMENTATION_PLAN.md`.
 
-## Visual identity
-- Background: `#101010`
-- Surface: `#191919`
-- Coral accent: `#FF5D72`
-- Soft pink: `#FF9BA8`
-- Mint: `#B6F0D2`
-- Typography direction: DM Sans + Space Grotesk
+## Get the Android source
 
-## Prototype
-The current branch includes a responsive HTML/CSS/JavaScript concept for exploring the Rymora visual design. It is **not an Android APK yet**. Native Android implementation is the intended next stage.
+```bash
+git clone --branch android-foundation https://github.com/riynk/music-rymora.git
+cd music-rymora
+git submodule update --init --recursive
+```
 
-## Content and rights
-Music streaming, lyrics, lyric translations and floating lyric overlays depend on provider APIs, licensing, and Android platform permissions. The app will use authorized sources and will not re-host copyrighted music or lyrics without permission.
+Open `android/vendor/koda` in Android Studio. The upstream project documents its build requirements and Gradle tasks in its README.
 
-## Roadmap
-1. Native Android project scaffold and Compose navigation
-2. Home, Search, Library and Now Playing screens
-3. Media3 playback and background media controls
-4. Lyrics screen with synchronized timing
-5. Provider integration, local favorites and playlists
-6. Build, test and distribute APK
+**Status:** this branch establishes and pins the Android upstream; it is not yet a branded, tested Rymora APK. The earlier HTML/CSS/JS concept remains in branch `RY` as a visual prototype.
+
+## Licensing
+
+The Koda upstream is GPL-3.0. Before distributing a modified combined application, preserve copyright and license notices and comply with applicable source-code and redistribution obligations. Third-party components retain their own licenses. Finalize Rymora's top-level licensing and notices before publishing a distributable build.

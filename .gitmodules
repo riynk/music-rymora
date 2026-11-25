@@ -1,0 +1,4 @@
+[submodule "android/vendor/koda"]
+	path = android/vendor/koda
+	url = https://github.com/Ivorisnoob/Koda.git
+	branch = beta
