@@ -14,7 +14,7 @@ However, the current Rymora branch is still an **integration scaffold**, not a c
 - The application source is referenced as a Git submodule. The Rymora parent repository contains no standalone Gradle Android project.
 - The branding script changes a limited set of source strings and theme values. It does not rebrand all translations or replace every upstream identity.
 - The CI pipeline now builds a debug APK and runs upstream unit tests; an artifact is verified for run [45620251758](https://github.com/riynk/music-rymora/actions/runs/45620251758).
-- A TTML-first preference overlay is implemented and regression-tested. Raw TTML persistence/offline sidecar preservation, yt-dlp backend, lyric translation and general tag-editor UI remain unimplemented.
+- TTML-first selection is implemented; an additional overlay now carries the original TTML payload through parsing and exports `.ttml` offline sidecars while retaining LRC fallback. JVM regression tests are added; validation of this latest overlay is pending. yt-dlp backend, lyric translation and general tag-editor UI remain unimplemented.
 - The APK is a CI debug artifact, not yet install-tested on a physical device.
 
 **Conclusion:** Koda remains the high-feature upstream foundation. A debug APK now builds successfully, but the branch is not production-ready or device-validated. Continue with maintainable fork ownership and the remaining Rymora-specific differentiators.
