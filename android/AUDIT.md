@@ -82,7 +82,9 @@ Warning: Failed to find package 'tools'
 
 Google no longer serves the legacy SDK `tools` package. The branding step, Gradle build and artifact upload were skipped. The run produced zero APK artifacts.
 
-**Interpretation:** This failure does not demonstrate a Kotlin/Gradle compilation defect. It demonstrates a broken SDK setup step. Until the workflow passes the test and build tasks, Rymora has no verified APK.
+**Remediation committed:** commit `86448829776c408fc8872626c80a4a644da918b5` updates setup-android to v4, explicitly installs only `platform-tools`, and adds a JVM unit-test gate before APK assembly. The corrected run [45618903991](https://github.com/riynk/music-rymora/actions/runs/45618903991) has passed SDK setup and the branding overlay; the unit-test step is still running at the time of this audit update. Its Gradle test and APK results are not yet confirmed.
+
+**Interpretation:** The original failure did not demonstrate a Kotlin/Gradle compilation defect. It demonstrated a broken SDK setup step. The SDK setup cause is now fixed; the app still needs the test and build stages to finish successfully before an APK can be claimed.
 
 ### RYM-002 — The Rymora repository is a wrapper around an upstream submodule
 **Severity: P1 / architecture**
@@ -161,9 +163,18 @@ Koda documents that it uses YouTube's internal/InnerTube interfaces and NewPipe 
 ### RYM-011 — Current build pipeline is not release-grade
 **Severity: P1 / release process**
 
-The workflow currently builds only a debug APK and uploads a short-lived artifact. It has not run unit tests, lint, instrumentation tests or device tests. It does not create a signed release build, publish release checksums or produce a dependency/license report as a release artifact. The first recorded run produced no artifact.
+The workflow now runs JVM unit tests before assembling a debug APK, and the SDK setup failure from the first run has been corrected. The corrected run is still in progress: unit tests have started, while APK assembly and artifact upload are pending. There is no confirmed Rymora APK yet. Lint, instrumentation tests and physical-device tests are not part of the current workflow. It does not create a signed release build, publish release checksums or produce a dependency/license report as a release artifact.
 
-**Recommendation:** run JVM tests before the debug build, then add lint and a test matrix. Add a separately protected release workflow with owner-controlled signing, versioning, checksums, changelog and license/third-party notices. Pin critical GitHub Actions to reviewed immutable SHAs before public releases.
+**Recommendation:** confirm the current unit-test and debug-build run, then add lint and a test matrix. Add a separately protected release workflow with owner-controlled signing, versioning, checksums, changelog and license/third-party notices. Pin critical GitHub Actions to reviewed immutable SHAs before public releases.
+
+### RYM-012 — Android permissions and exported components need a Rymora-specific security pass
+**Severity: P2 / privacy and platform compatibility**
+
+The upstream manifest declares audio/video media permissions, legacy external-storage read permission, broad `MANAGE_EXTERNAL_STORAGE`, foreground service permissions for playback/data sync, notifications, network state, wake lock and battery-optimization exemption requests. The application also declares backup/data-extraction configuration and exported services/providers required for media integrations, widgets and other Android surfaces.
+
+These choices support Koda's extensive feature set, but Rymora must not carry them forward blindly. In particular, the tag editor and downloader should use Storage Access Framework/MediaStore access where sufficient; broad all-files access should have a clear necessity and user-facing explanation. Exported media services/providers and imported playlists, subtitles, backup archives, stream manifests and session cookies need explicit regression tests against the upstream security policy.
+
+**Recommendation:** create a permission-to-feature matrix, verify each exported component's intent filters and caller expectations, review backup inclusion/exclusion for credentials and personal data, and test untrusted file/metadata parsing and write-path confinement before distributing Rymora.
 
 ## 6. Build and platform profile at the pinned upstream
 
