@@ -204,6 +204,11 @@ private fun Long.toLrcTimestamp(): String {"""
         """artworkFile = artworkTemp,
                         lyrics = lyrics?.content"""
     )
+    test_source = Path(__file__).resolve().parent.parent / "android/overlays/RymoraTtmlPayloadTest.kt"
+    test_target = root / "app/src/test/java/com/ivor/ivormusic/data/RymoraTtmlPayloadTest.kt"
+    test_target.parent.mkdir(parents=True, exist_ok=True)
+    test_target.write_text(test_source.read_text(encoding="utf-8"), encoding="utf-8")
+
     print("Rymora TTML-first lyrics behavior applied.")
     print("TTML raw payload is retained and exported as a .ttml sidecar; LRC/plain fallback remains.")
     print("Priority: TTML source first, sync quality as tie-breaker; local TTML sidecar before LRC.")
