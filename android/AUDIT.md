@@ -104,7 +104,9 @@ The upstream parser can parse TTML, including timed spans. However:
 - Local sidecar lookup uses the extension order `lrc`, then `ttml`; an LRC sidecar can be selected before a TTML sidecar.
 - The download metadata path converts parsed timed lyrics back to LRC/Enhanced LRC/plain text. It does not preserve the original TTML document.
 
-**Recommendation:** model both `sourceFormat` and `rawPayload`; rank valid TTML first, then use timing quality as a tie-breaker, with Enhanced LRC/LRC/plain fallbacks. Prefer local TTML over local LRC when both exist. Preserve a TTML sidecar for offline use and only generate an embedded LRC representation when the target audio container/tag format requires it. Add parser/provider/ranking/round-trip tests.
+**Implemented in the Rymora overlay (commit `1ee3287`):** the normalized model now has a source-format marker (`TTML` vs `OTHER`); the parser tags TTML results; the remote candidate rank puts TTML ahead of sync quality (sync quality is the tie-breaker); and local sidecar search checks TTML before LRC. A fail-closed, idempotent overlay is run by bootstrap, with fixture regression tests in `tests/test_rymora_lyrics_patch.py`.
+
+**Still open:** raw TTML payload preservation and TTML sidecar writing for downloaded files. The overlay does not claim lossless TTML offline preservation yet. Enhanced LRC/LRC/plain remain fallback formats. The overlay's fixture tests and the upstream Gradle test/build must pass before treating this implementation as validated.
 
 ### RYM-004 — Lyrics are hidden by default, but are prefetched automatically
 **Severity: P2 / behavior to preserve and test**
