@@ -18,12 +18,12 @@ See `android/README.md`, `android/UPSTREAMS.md`, and `android/IMPLEMENTATION_PLA
 ```bash
 git clone --branch android-foundation https://github.com/riynk/music-rymora.git
 cd music-rymora
-git submodule update --init --recursive
+bash scripts/bootstrap-android.sh
 ```
 
-Open `android/vendor/koda` in Android Studio. The upstream project documents its build requirements and Gradle tasks in its README.
+Open `android/vendor/koda` in Android Studio. The bootstrap script initializes the pinned upstream and applies the Rymora app ID, app label and palette overlay.
 
-**Status:** this branch establishes and pins the Android upstream; it is not yet a branded, tested Rymora APK. The earlier HTML/CSS/JS concept remains in branch `RY` as a visual prototype.
+**Status:** the branch contains a pinned Android upstream, a Rymora branding overlay and a CI build workflow. It is not yet a compiled or device-tested Rymora APK. The earlier HTML/CSS/JS concept remains in branch `RY` as a visual prototype.
 
 ## Licensing
 
