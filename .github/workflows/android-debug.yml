@@ -1,0 +1,39 @@
+name: Android debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - android-foundation
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Rymora and upstream submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Apply Rymora branding overlay
+        run: bash scripts/bootstrap-android.sh
+      - name: Build debug APK
+        working-directory: android/vendor/koda
+        run: ./gradlew :app:assembleDebug --stacktrace
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rymora-android-debug
+          path: android/vendor/koda/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
