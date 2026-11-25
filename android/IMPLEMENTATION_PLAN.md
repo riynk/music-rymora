@@ -1,5 +1,8 @@
 # Rymora implementation plan
 
+- Local player artwork fallback now extracts embedded cover from local audio when MediaStore art is absent (overlay; CI pending).
+- Now Playing favorite, shuffle and repeat are wired to persistent/player state; compact screens scroll; playback resolution failures are surfaced via snackbar (overlay; CI pending).
+
 ## Product behavior locked from the owner's requirements
 
 - Native Android smartphone app, not a WebView wrapper.
