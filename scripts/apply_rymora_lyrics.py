@@ -206,10 +206,12 @@ private fun Long.toLrcTimestamp(): String {"""
     )
     player_source = Path(__file__).resolve().parent.parent / "android/overlays/PlayerScreen.kt"
     player_target = root / "app/src/main/java/com/ivor/ivormusic/ui/player/PlayerScreen.kt"
+    player_target.parent.mkdir(parents=True, exist_ok=True)
     player_target.write_text(player_source.read_text(encoding="utf-8"), encoding="utf-8")
 
     artwork_source = Path(__file__).resolve().parent.parent / "android/overlays/SongArtwork.kt"
     artwork_target = root / "app/src/main/java/com/ivor/ivormusic/ui/components/SongArtwork.kt"
+    artwork_target.parent.mkdir(parents=True, exist_ok=True)
     artwork_target.write_text(artwork_source.read_text(encoding="utf-8"), encoding="utf-8")
 
     test_source = Path(__file__).resolve().parent.parent / "android/overlays/RymoraTtmlPayloadTest.kt"
