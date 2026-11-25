@@ -16,20 +16,60 @@ class LyricsOverlayTests(unittest.TestCase):
             """internal data class ParsedLyrics(
     val lines: List<LrcLine>,
     val syncType: LyricsSyncType
-)""", encoding="utf-8")
+)
+data class Success(
+        val provider: String,
+        val syncType: LyricsSyncType
+    ) : LyricsResult.Success""", encoding="utf-8")
         (data / "LyricsParser.kt").write_text(
             """return when {
             isTtml(normalized) -> parseTtml(normalized)""", encoding="utf-8")
         (data / "LocalLyricsSource.kt").write_text(
-            'val SIDECAR_EXTENSIONS = listOf("lrc", "ttml")', encoding="utf-8")
+            '''val SIDECAR_EXTENSIONS = listOf("lrc", "ttml")
+private fun ParsedLyrics.toResult(provider: String) = LyricsResult.Success(
+        lines = lines,
+        provider = provider,
+        syncType = syncType
+    )''', encoding="utf-8")
         (data / "LyricsRepository.kt").write_text(
-            """val best = if (configuration.preferSynced) {
+            """private data class ProviderCandidate(
+    val provider: RemoteLyricsProvider,
+    val parsed: ParsedLyrics
+) {
+    fun toSuccess() = LyricsResult.Success(
+        lines = parsed.lines,
+        provider = provider.name,
+        syncType = parsed.syncType
+    )
+}
+val best = if (configuration.preferSynced) {
                 stage.candidates.maxByOrNull { it.parsed.syncType.quality }
             } else stage.candidates.firstOrNull()
 val best = candidates.sortedBy { providers.indexOf(it.provider) }.let { ordered ->
                     if (configuration.preferSynced) ordered.maxByOrNull { it.parsed.syncType.quality }
                     else ordered.firstOrNull()
                 }""", encoding="utf-8")
+        (data / "DownloadedAudioMetadata.kt").write_text(
+            "private fun Long.toLrcTimestamp(): String {", encoding="utf-8")
+        (data / "DownloadRepository.kt").write_text(
+            '''?.toDownloadLyrics()
+                            ?.takeIf(String::isNotBlank)
+val name = storage.buildMusicCompanionFileName(
+                            request.title,
+                            request.subtitle,
+                            "lrc"
+                        )
+                        storage.createPendingMusicCompanion(
+                            name,
+                            "text/plain",
+                            privateStorage
+                        )?.also { target ->
+                            pendingTargets += target
+                            storage.openOutput(target)?.bufferedWriter(Charsets.UTF_8)?.use {
+                                it.write(body)
+                            } ?: throw java.io.IOException("Could not write lyric storage entry")
+artworkFile = artworkTemp,
+                        lyrics = lyrics''', encoding="utf-8")
         self.data = data
 
     def tearDown(self):
@@ -46,10 +86,19 @@ val best = candidates.sortedBy { providers.indexOf(it.provider) }.let { ordered 
         local = (self.data / "LocalLyricsSource.kt").read_text()
         repo = (self.data / "LyricsRepository.kt").read_text()
         self.assertIn("enum class LyricsSourceFormat { TTML, OTHER }", model)
-        self.assertIn("copy(sourceFormat = LyricsSourceFormat.TTML)", parser)
+        self.assertIn("rawTtml = normalized", parser)
+        self.assertIn("rawTtml: String? = null", model)
         self.assertIn('listOf("ttml", "lrc")', local)
         self.assertIn("sourceFormat == LyricsSourceFormat.TTML", repo)
         self.assertGreaterEqual(repo.count("sourceFormat == LyricsSourceFormat.TTML"), 4)
+        self.assertIn("rawTtml = parsed.rawTtml", repo)
+        self.assertIn("rawTtml = rawTtml", local)
+        metadata = (self.data / "DownloadedAudioMetadata.kt").read_text()
+        download = (self.data / "DownloadRepository.kt").read_text()
+        self.assertIn('DownloadLyricsPayload("ttml", "application/ttml+xml", rawTtml)', metadata)
+        self.assertIn("body.extension", download)
+        self.assertIn("body.content", download)
+        self.assertIn("lyrics?.content", download)
 
     def test_fails_closed_when_upstream_anchor_changes(self):
         (self.data / "LyricsRepository.kt").write_text("upstream changed unexpectedly", encoding="utf-8")
