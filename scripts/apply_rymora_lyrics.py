@@ -60,7 +60,7 @@ internal data class ParsedLyrics(
         """return when {
             isTtml(normalized) -> parseTtml(normalized)""",
         """return when {
-            isTtml(normalized) -> parseTtml(normalized)?.copy(sourceFormat = LyricsSourceFormat.TTML, rawTtml = normalized)"""
+            isTtml(normalized) -> parseTtml(normalized)?.copy(sourceFormat = LyricsSourceFormat.TTML, rawTtml = content)"""
     )
 
     local = base / "LocalLyricsSource.kt"
