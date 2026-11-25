@@ -49,7 +49,7 @@ val best = candidates.sortedBy { providers.indexOf(it.provider) }.let { ordered 
         self.assertIn("copy(sourceFormat = LyricsSourceFormat.TTML)", parser)
         self.assertIn('listOf("ttml", "lrc")', local)
         self.assertIn("sourceFormat == LyricsSourceFormat.TTML", repo)
-        self.assertEqual(repo.count("sourceFormat == LyricsSourceFormat.TTML"), 2)
+        self.assertGreaterEqual(repo.count("sourceFormat == LyricsSourceFormat.TTML"), 4)
 
     def test_fails_closed_when_upstream_anchor_changes(self):
         (self.data / "LyricsRepository.kt").write_text("upstream changed unexpectedly", encoding="utf-8")
