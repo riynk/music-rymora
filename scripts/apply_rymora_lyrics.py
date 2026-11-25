@@ -46,12 +46,12 @@ internal data class ParsedLyrics(
         model,
         """        val provider: String,
         val syncType: LyricsSyncType
-    ) : LyricsResult.Success""",
+    ) : LyricsResult()""",
         """        val provider: String,
         val syncType: LyricsSyncType,
         val sourceFormat: LyricsSourceFormat = LyricsSourceFormat.OTHER,
         val rawTtml: String? = null
-    ) : LyricsResult.Success"""
+    ) : LyricsResult()"""
     )
 
     parser = base / "LyricsParser.kt"
