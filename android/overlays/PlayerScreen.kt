@@ -86,6 +86,8 @@ fun PlayerScreen(
     val playWhenReady by viewModel.playWhenReady.collectAsState()
     val progress by viewModel.progress.collectAsState()
     val duration by viewModel.duration.collectAsState()
+    val isShuffleOn by viewModel.shuffleModeEnabled.collectAsState()
+    val repeatMode by viewModel.repeatMode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(viewModel) {
         viewModel.playbackFailures.collect { failure ->
@@ -366,7 +368,7 @@ fun PlayerScreen(
             ) {
                 IconToggleButton(
                     checked = isShuffleOn,
-                    onCheckedChange = { isShuffleOn = it },
+                    onCheckedChange = { viewModel.toggleShuffle() },
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
@@ -378,15 +380,19 @@ fun PlayerScreen(
                 }
                 
                 IconToggleButton(
-                    checked = isRepeatOn,
-                    onCheckedChange = { isRepeatOn = it },
+                    checked = repeatMode != androidx.media3.common.Player.REPEAT_MODE_OFF,
+                    onCheckedChange = { viewModel.toggleRepeat() },
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         Icons.Default.Repeat,
-                        contentDescription = "Repeat",
+                        contentDescription = when (repeatMode) {
+                            androidx.media3.common.Player.REPEAT_MODE_ONE -> "Repeat one"
+                            androidx.media3.common.Player.REPEAT_MODE_ALL -> "Repeat all"
+                            else -> "Repeat off"
+                        },
                         modifier = Modifier.size(28.dp),
-                        tint = if (isRepeatOn) primaryColor else onSurfaceVariantColor
+                        tint = if (repeatMode != androidx.media3.common.Player.REPEAT_MODE_OFF) primaryColor else onSurfaceVariantColor
                     )
                 }
             }
