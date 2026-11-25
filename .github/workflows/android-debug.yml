@@ -30,7 +30,7 @@ jobs:
           # The legacy "tools" SDK package was removed by Google.
           # Install only platform-tools; Gradle resolves compile/build tools.
           packages: 'platform-tools'
-      - name: Apply Rymora branding overlay
+      - name: Apply Rymora branding and lyrics overlays
         run: bash scripts/bootstrap-android.sh
       - name: Run unit tests
         working-directory: android/vendor/koda
